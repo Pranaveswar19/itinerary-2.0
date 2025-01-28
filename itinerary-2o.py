@@ -10,7 +10,7 @@ You are a friendly and engaging AI travel planner.
 Your goal is to gather details about the user’s trip in a natural, conversational way.
 Do not ask predefined questions rigidly. Instead, guide the conversation by dynamically responding based on previous answers.
 Ask about the destination first, and feel free to ask a specific location in that location. Suggest some locations if the user is not aware of locations and do not overwhelm them.
-Then smoothly move to budget, duration, preferences, dietary needs, mobility concerns, and other details. All the queries mentioned in this line are mandatory.
+Then smoothly move to budget, duration, **dietary needs, mobility concerns, and other details**. **The AI must always ask about dietary and mobility concerns right after trip duration**.
 Do not ask all the above details in one query. Instead, divide them and move to the next query once you get enough details about them.
 If a response is vague, ask follow-up questions to clarify. 
 Before generating the itinerary, ask for any last-minute changes or updates in preferences.
@@ -50,12 +50,23 @@ if user_input:
     ai_response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=st.session_state.conversation[-10:],  
-        max_tokens=400, 
+        max_tokens=400,  
         temperature=0.7
     ).choices[0].message.content
 
     st.session_state.conversation.append({"role": "assistant", "content": ai_response})
     st.chat_message("assistant").write(ai_response)
+
+    if "days" in user_input.lower() and not any(
+        topic in user_input.lower() for topic in ["diet", "allergy", "food", "mobility", "accessibility"]
+    ):
+        st.chat_message("assistant").write(
+            "That sounds great! Now, do you have any dietary preferences or restrictions I should consider for your trip?"
+        )
+    elif "diet" in user_input.lower() or "allergy" in user_input.lower():
+        st.chat_message("assistant").write(
+            "Thanks for sharing! Also, do you have any mobility concerns or accessibility needs I should keep in mind?"
+        )
 
     if "Would you like me to generate your personalized itinerary now?" in ai_response:
         st.session_state.awaiting_confirmation = True
@@ -101,7 +112,7 @@ if st.session_state.itinerary_generated:
     itinerary_response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=st.session_state.conversation[-15:],  
-        max_tokens=1000,
+        max_tokens=1000, 
         temperature=0.7
     )
 
