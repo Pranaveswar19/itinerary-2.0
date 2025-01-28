@@ -3,7 +3,7 @@ import openai
 import json
 import time
 
-client = openai.OpenAI(api_key=st.secrets["ai_planner_api_key"])
+openai.api_key = st.secrets["ai_planner_api_key"]
 
 SYSTEM_PROMPT = """
 You are a friendly and engaging AI travel planner.
